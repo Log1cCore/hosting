@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Вход - Поликлиника</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e7490'/%3E%3Cpath d='M13 7h6v6h6v6h-6v6h-6v-6H7v-6h6z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="login-body">
+
+<!-- ==================== ЭКРАН ВХОДА ==================== -->
+<div class="login-screen">
+  <div class="login-card">
+    <span class="login-icon">+</span>
+    <h1>Поликлиника</h1>
+    <p class="login-sub">Запись на приём к врачам</p>
+
+    <div class="login-roles">
+      <button type="button" class="login-role active" data-role="admin">Администратор</button>
+      <button type="button" class="login-role" data-role="doctor">Врач</button>
+      <button type="button" class="login-role" data-role="patient">Пациент</button>
+    </div>
+
+    <!-- Вход администратора -->
+    <form id="login-admin-form" class="login-form" autocomplete="off">
+      <label>Логин
+        <input type="text" id="lg-user" required placeholder="admin">
+      </label>
+      <label>Пароль
+        <input type="password" id="lg-pass" required placeholder="......">
+      </label>
+      <button type="submit" class="btn primary" style="width:100%">Войти</button>
+      <p class="hint login-hint">Демо-доступ: логин <code>admin</code>, пароль <code>admin</code></p>
+    </form>
+
+    <!-- Вход врача -->
+    <form id="login-doctor-form" class="login-form hidden" autocomplete="off">
+      <label>Выберите себя в списке врачей
+        <select id="lg-doctor" required></select>
+      </label>
+      <button type="submit" class="btn primary" style="width:100%">Войти</button>
+    </form>
+
+    <!-- Вход пациента -->
+    <form id="login-patient-form" class="login-form hidden" autocomplete="off">
+      <label>Выберите себя в списке пациентов
+        <select id="lg-patient" required></select>
+      </label>
+      <button type="submit" class="btn primary" style="width:100%">Войти</button>
+    </form>
+
+    <div id="login-error" class="result err hidden"></div>
+
+    <div class="login-load">
+      <span id="login-load-note">Загрузка справочников...</span>
+      <button type="button" id="login-reload" class="btn ghost hidden">Обновить списки</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+<script src="/js/common.js"></script>
+<script src="/js/login.js"></script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Поликлиника - запись на приём</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230e7490'/%3E%3Cpath d='M13 7h6v6h6v6h-6v6h-6v-6H7v-6h6z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<!-- ==================== ПРИЛОЖЕНИЕ (после входа) ==================== -->
+<div id="app">
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="brand-icon">+</span>
+        <div>
+          <div class="brand-title">Поликлиника</div>
+          <div class="brand-sub">Запись на приём - личные кабинеты</div>
+        </div>
+      </div>
+      <div class="user-chip">
+        <div class="user-info">
+          <span id="userName" class="user-name"></span>
+          <span id="userRole" class="role-badge"></span>
+        </div>
+        <button class="btn exit" id="btnLogout">Выйти</button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="booking" data-roles="admin,patient">Запись на приём</button>
+    <button class="tab" data-tab="doctors" data-roles="admin,doctor,patient">Врачи</button>
+    <button class="tab" data-tab="patients" data-roles="admin">Пациенты</button>
+    <button class="tab" data-tab="history" data-roles="admin,doctor,patient">Все записи</button>
+    <button class="tab" data-tab="about" data-roles="admin,doctor,patient">О поликлинике</button>
+  </nav>
+
+  <main class="container">
+
+    <!-- ================= ЗАПИСЬ НА ПРИЁМ ================= -->
+    <section id="tab-booking" class="tab-page active">
+      <div class="grid-2">
+        <div class="card">
+          <h2>Новая запись к врачу</h2>
+          <p class="hint">Выберите врача, дату и время - мы проверим, что врач принимает пациентов,
+            и подтвердим талон. Подтверждение появится справа.</p>
+          <form id="bookingForm">
+            <label id="bk-patient-label">Пациент <span class="req">*</span>
+              <select id="bk-patient" required></select>
+            </label>
+            <div id="bk-patient-fixed" class="result small hidden"></div>
+            <label>Врач <span class="req">*</span>
+              <select id="bk-doctor" required></select>
+              <small class="hint">Недоступный врач помечен словами "не принимает"</small>
+            </label>
+            <div class="form-row">
+              <label>Дата приёма <span class="req">*</span>
+                <input type="date" id="bk-date" required>
+              </label>
+              <label>Время <span class="req">*</span>
+                <input type="time" id="bk-time" value="09:00" required>
+              </label>
+            </div>
+            <label>Причина обращения <span class="req">*</span>
+              <textarea id="bk-reason" rows="2" maxlength="500" placeholder="Например: плановый осмотр, кашель..." required></textarea>
+            </label>
+            <button type="submit" class="btn primary" id="bk-submit">Записать</button>
+          </form>
+        </div>
+        <div class="card">
+          <h2>Результат</h2>
+          <div id="bk-result" class="result empty">Заполните форму слева и нажмите "Записать".<br>
+            Здесь появится подтверждение талона или объяснение, если записаться
+            не получится (например, если врач отмечен недоступным).</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= ВРАЧИ ================= -->
+    <section id="tab-doctors" class="tab-page">
+      <div class="card">
+        <div class="card-head">
+          <h2>Врачи <span id="doc-count" class="count-badge"></span></h2>
+          <div class="toolbar">
+            <input type="text" id="doc-filter" placeholder="Фильтр по специальности (Терапевт, Хирург...)">
+            <button class="btn ghost" id="doc-refresh">Обновить</button>
+          </div>
+        </div>
+        <p class="hint">Используйте фильтр, чтобы быстро найти специалиста нужного профиля.</p>
+        <div id="doc-list" class="cards-grid"></div>
+        <details class="add-panel admin-only">
+          <summary>Добавить врача</summary>
+          <form id="doctorForm" class="form-grid">
+            <label>ФИО <span class="req">*</span><input type="text" id="dr-name" required minlength="2" maxlength="100"></label>
+            <label>Специальность <span class="req">*</span><input type="text" id="dr-spec" required list="spec-list">
+              <datalist id="spec-list">
+                <option>Терапевт</option><option>Хирург</option><option>Офтальмолог</option>
+                <option>Кардиолог</option><option>Стоматолог</option><option>Педиатр</option>
+                <option>Невролог</option><option>ЛОР</option>
+              </datalist>
+            </label>
+            <label>Кабинет<input type="text" id="dr-cab" placeholder="101"></label>
+            <label>Телефон<input type="text" id="dr-phone" placeholder="+7 ..."></label>
+            <div class="form-actions"><button class="btn primary" type="submit">Добавить</button></div>
+          </form>
+          <div id="dr-result" class="result small"></div>
+        </details>
+      </div>
+    </section>
+
+    <!-- ================= ПАЦИЕНТЫ (только администратор) ================= -->
+    <section id="tab-patients" class="tab-page">
+      <div class="card">
+        <div class="card-head">
+          <h2>Пациенты <span id="pat-count" class="count-badge"></span></h2>
+          <button class="btn ghost" id="pat-refresh">Обновить</button>
+        </div>
+        <div class="table-wrap">
+          <table id="pat-table">
+            <thead><tr><th>ID</th><th>ФИО</th><th>Дата рождения</th><th>Полис</th><th>Email</th><th>Телефон</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <details class="add-panel">
+          <summary>Зарегистрировать пациента</summary>
+          <form id="patientForm" class="form-grid">
+            <label>ФИО <span class="req">*</span><input type="text" id="pt-name" required minlength="2" maxlength="100"></label>
+            <label>Дата рождения<input type="date" id="pt-birth"></label>
+            <label>Полис <span class="req">*</span><input type="text" id="pt-policy" required minlength="10" maxlength="20" placeholder="10-20 символов, уникальный"></label>
+            <label>Email<input type="email" id="pt-email" placeholder="user@mail.ru"></label>
+            <label>Телефон<input type="text" id="pt-phone" placeholder="+7 ..."></label>
+            <div class="form-actions"><button class="btn primary" type="submit">Зарегистрировать</button></div>
+          </form>
+          <div id="pt-result" class="result small"></div>
+        </details>
+      </div>
+    </section>
+
+    <!-- ================= ЗАПИСИ (история / расписание / мои записи) ================= -->
+    <section id="tab-history" class="tab-page">
+      <div class="card">
+        <div class="card-head">
+          <h2><span id="ap-heading">Все записи</span> <span id="ap-count" class="count-badge"></span></h2>
+          <div class="toolbar">
+            <select id="ap-filter-patient" class="admin-only"><option value="">Все пациенты</option></select>
+            <select id="ap-filter-doctor" class="admin-only"><option value="">Все врачи</option></select>
+            <button class="btn ghost" id="ap-refresh">Обновить</button>
+          </div>
+        </div>
+        <p class="hint" id="ap-hint">Полный список талонов. Используйте фильтры, чтобы найти нужную запись.</p>
+
+        <!-- Статус приёма (видит только врач о себе) -->
+        <div id="doctor-status" class="doctor-only hidden"></div>
+
+        <div class="table-wrap">
+          <table id="ap-table">
+            <thead><tr><th>№</th><th>Дата</th><th>Время</th><th>Пациент</th><th>Врач</th><th>Причина</th><th>Статус</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div id="ap-empty" class="empty-note hidden">Записей пока нет.</div>
+      </div>
+    </section>
+
+    <!-- ================= О ПОЛИКЛИНИКЕ ================= -->
+    <section id="tab-about" class="tab-page">
+      <div class="card">
+        <h2>О поликлинике</h2>
+        <p>Мы - многопрофильная поликлиника, приём в которой ведут опытные специалисты:
+          терапевты, хирурги, офтальмологи, кардиологи, педиатры и неврологи.
+          Записаться можно как через этот сайт, так и лично у администратора -
+          система мгновенно подтверждает талон и сохраняет его в вашей истории.</p>
+
+        <h3>Как записаться на приём</h3>
+        <ol class="about-list">
+          <li>Войдите в личный кабинет: администратор, врач или пациент.</li>
+          <li>В разделе "Запись на приём" выберите врача, дату и время, опишите причину обращения.</li>
+          <li>Дождитесь подтверждения - талон появится в списке ваших записей.</li>
+        </ol>
+
+        <h3>Часы работы</h3>
+        <div class="table-wrap">
+          <table class="hours-table">
+            <tbody>
+              <tr><td>Понедельник - пятница</td><td>8:00 - 20:00</td></tr>
+              <tr><td>Суббота</td><td>9:00 - 15:00</td></tr>
+              <tr><td>Воскресенье</td><td>выходной</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Контакты</h3>
+        <ul class="info-list">
+          <li>Адрес: г. Москва, ул. Профсоюзная, д. 15</li>
+          <li>Телефон регистратуры: +7 (495) 123-45-67</li>
+          <li>Email: info@polyclinic.ru</li>
+        </ul>
+        <p class="hint">При острых состояниях обращайтесь в круглосуточный стационар или звоните 103.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">Поликлиника - запись на приём к врачам</footer>
+</div>
+
+<div id="toast" class="toast"></div>
+<script src="/js/common.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>
